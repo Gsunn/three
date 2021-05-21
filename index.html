@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+
+    <style>
+            html {
+              width: 100%;
+              height: 100%;
+
+              background: #11e8bb; /* Old browsers */
+              background: -moz-linear-gradient(top,  #11e8bb 0%, #8200c9 100%); /* FF3.6-15 */
+              background: -webkit-linear-gradient(top,  #11e8bb 0%,#8200c9 100%); /* Chrome10-25,Safari5.1-6 */
+              background: linear-gradient(to bottom,  #11e8bb 0%,#8200c9 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+              filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#11e8bb', endColorstr='#8200c9',GradientType=0 ); /* IE6-9 */
+            }
+
+            body{
+              overflow: hidden;
+              margin:0;
+            }
+            .canvas{
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height:100%;
+            }
+            </style>
+
+
+</head>
+<body>
+        <div style="text-align: center; position:fixed; z-index: 9999;"> 
+                <button type="button" onclick="play();" >PLAY</button>
+                 <button type="button" onclick="stop();" >STOP</button>
+              </div>
+        <div id="scene-container" class="canvas"></div>
+
+        <script type="text/javascript"  src="js/libs/jquery.3.4.1.js"></script>
+        <script type="text/javascript"  src="js/libs/three.min.js"></script>
+        <script type="text/javascript"  src="js/libs/controls/MapControls.js"></script>
+        <script type="text/javascript"  src="js/app/sm4.js"></script>
+        <script type="text/javascript"  src="js/app/app.js"></script>
+<!--        <script src="js/_main.js"></script>-->
+</body>
+</html>

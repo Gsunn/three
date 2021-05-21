@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>http://jsfiddle.net/NYEaX/468/</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+</head>
+<body>
+    	<div id="holder">
+        <ul class="throbdata"></ul>
+		<div id="viz"></div>
+	</div>
+	
+	<script>
+    
+        			var buildCircle = {
+					init: function(){
+                        var h = 400;
+                        var w = 500;
+                        // make a dummy data set
+                        var dataset = [],
+                        i = 0;    
+                        for(i=0; i<1; i++){
+                            var locale = {
+                                "xcoord": getRandomInt (w/8, w/2),
+                                "ycoord": getRandomInt (h/8, h/2),
+                                "value": 30,//getRandomInt (10, 100),
+                                "alarmLevel": getRandomInt (0, 200)
+                            }
+                            dataset.push(locale);
+                        }       
+                        //__ make dummy data
+                        
+                        
+                        function getRandomInt (min, max) {
+                            return Math.floor(Math.random() * (max - min + 1)) + min;
+                        }
+                        
+                        
+                        
+                        //__vis apped    
+                        var viz = d3.select("#viz")
+                            .append("svg")
+                            .attr("width", w)
+                            .attr("height", h)
+                                .append("g")
+                                
+                        
+                        //_place holder for markers
+                        var circleGroup = viz.append("g")
+                            .attr("class", "circles");
+                            
+                            circleGroup.selectAll("circle")
+                            .data(dataset)
+                            .enter().append("circle")
+                            .style("stroke", "gray")
+                            .style("fill", "#f25c19")
+                            .attr("r", function(d){
+                                return d.value*.5;//scale the circles
+                            })
+                            .attr("cx", function(d){
+                                return d.xcoord;
+                            })
+                            .attr("cy", function(d){
+                                return d.ycoord;
+                            });
+                            
+                            
+                         //_place holder for rings								
+                         var speedLineGroup = viz.append("g")
+                             .attr("class", "speedlines");
+
+ 
+                        function getDurationPerDot(circleData){
+                            var totalTime = 3000;//3 seconds max
+                            var time = totalTime-(circleData.alarmLevel*10)
+                            return time;
+                        }
+
+                        function getOuterRadiusPerDot(circleData){
+                            var radius = circleData.alarmLevel*.5;
+                            return radius;
+                        }                        
+
+                        
+                                             
+                        
+                        //invoke rings
+                        makeRings()
+
+
+                        
+ //window.setInterval(makeRings, 1000);
+
+                        function makeRings() {
+                            var datapoints = circleGroup.selectAll("circle");
+                            console.log(datapoints);
+                            var radius = 1;
+                          
+                                function myTransition(circleData){
+                                    
+                                    var transition = d3.select(this).transition();
+                                        
+                                        //var duration = getDurationPerDot(circleData);
+                                        var outerRadius = getOuterRadiusPerDot(circleData);
+    
+                                        speedLineGroup.append("circle")
+                                            .attr({
+                                                "class": "ring",
+                                                "fill":"#f25c19",
+                                                "stroke":"#f25c19",
+                                                "stroke-width": 1.5,
+                                                "cx": circleData.xcoord,
+                                                "cy": circleData.ycoord,
+                                                "r":radius,
+                                                "opacity": 0.35,
+                                                "fill-opacity":0.35
+                                            })
+                                            .transition()
+                                            .duration(6000)
+                                            .attr("r", radius + outerRadius )
+                                            .attr("opacity", 0)
+                                            .remove();
+                                 
+                                    var t= setInterval(function(){
+                                        clearInterval(t);
+                                        myTransition(circleData)
+                                    },700);
+                                     
+                                    //transition.each('end', myTransition);
+                                }
+                          
+                          datapoints.each(myTransition);
+
+                        }	
+				}
+			}
+
+
+		$(document).ready(function() {
+			buildCircle.init();
+		});		
+
+    
+    </script>
+	
+</body>
+</html>
+
+
+

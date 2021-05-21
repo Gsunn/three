@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<!-- How to create Mouse Events for D3 
+https://bl.ocks.org/cherdarchuk/822ba3ead00a0ffdbcfd4a144e763e31
+http://jsfiddle.net/NYEaX/468/
+https://github.com/d3
+https://www.d3-graph-gallery.com/graph/custom_axis.html
+https://bl.ocks.org/mbostock/db6b4335bf1662b413e7968910104f0f
+https://fabiofranchino.com/blog/how-to-load-image-in-svg-with-d3js/
+
+-->
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <!-- Load D3 from site -->
+    <script src="http://d3js.org/d3.v5.min.js" charset="utf-8"></script>
+    <script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
+    <script src="https://d3js.org/d3-transition.v1.min.js"></script>
+    <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+    <script src="https://d3js.org/d3-ease.v1.min.js"></script>
+    <script src="https://d3js.org/d3-zoom.v1.min.js"></script>
+    <!-- CSS (Styling) -->
+    <style type="text/css">
+        body {
+            padding: 100px;
+            margin: 0;
+            font-family: sans-serif;
+            font-size: 11px;
+        }
+        
+        .top-50 {
+            top: 50px;
+        }
+        
+        .myimage {}
+        
+        .overlay {
+            fill: none;
+            pointer-events: all;
+        }
+        
+        .axis path {
+            display: none;
+        }
+        
+        .axis line {
+            fill: none;
+            stroke: black;
+            shape-rendering: crispEdges;
+            /* Round any decimal pixels so it'll render nicely */
+        }
+        
+        .grid line {
+            stroke: lightgrey;
+            stroke-opacity: 0.7;
+            shape-rendering: crispEdges;
+        }
+        
+        #image-view {
+            min-height: 100%;
+            min-width: auto;
+            width: 0;
+            visibility: hidden
+        }
+        
+        #image-view,
+        #ruler {
+            position: absolute;
+            width: 100%;
+            padding: 0px;
+        }
+        
+        /*svg {
+            overflow: visible;
+        }*/
+
+    </style>
+</head>
+
+<body>
+
+    <div class="_container _top-50 col-md-12">
+        <image id="image-view" src="almacen.jpg" class="_mw-100"></image>
+        <div id="ruler">
+            <div id="content"></div>
+        </div>
+    </div>
+
+
+    <script>
+        window.onload = function() {
+            init();
+        }
+
+        function init() {
+            
+           let zoomTrans = {x:0, y:0, scale:1};
+
+            var width = $('#image-view').outerWidth();
+            var height = $('#image-view').outerHeight();
+
+            var data = [10, 15, 20, 25, 30, 75];
+
+            const svg = d3.select("#content")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+            //.attr("preserveAspectRatio", "xMinYMin meet");
+
+            var zoom = d3.zoom()
+                .scaleExtent([1, 40])
+                //.translateExtent([[-100, -100], [width + 90, height + 100]])
+                .translateExtent([
+                    [0, 0],
+                    [width, height]
+                ])
+                .on("zoom", zoomed);
+
+
+         
+            var myimage = svg.append('image')
+                            .attr("class", "myimage")
+                            .attr('xlink:href', 'almacen.jpg')
+                            .attr('width', width)
+                            .attr('height', height);
+
+           var view = svg.append('rect')
+                        .attr("class", "overlay")
+                        .attr('x', 0)
+                        .attr('y', 0)
+                        .attr('width', width)
+                        .attr('height', height)
+                        .attr('stroke', 'black')
+                        .attr('fill', 'transparent');
+
+
+            var xScale = d3.scaleLinear()
+                .domain([0, 150]).range([0, width]);
+
+
+            var yScale = d3.scaleLinear()
+                .domain([0, d3.max(data)]).range([height, 0]);
+
+            
+            var xAxis = d3.axisTop(xScale);
+            var gridX = d3.axisBottom(xScale)
+                    .ticks(10).tickSize(-height)
+                    .tickFormat("")
+
+            
+            // add the X gridlines
+            var GgridX = svg.append("g")
+                .attr("class", "grid")
+                .attr("transform", "translate(0," + height + ")")
+                .call(gridX);
+
+
+            // add the X Axis
+            var gX = svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis);
+            
+            
+            var yAxis = d3.axisRight(yScale);
+             var gridY = d3.axisLeft(yScale)
+                    .ticks(10).tickSize(-width)
+                    .tickFormat("");
+            
+              // add the Y gridlines
+               var GgridY = svg.append("g")			
+                  .attr("class", "grid")
+                  .call(gridY);
+            
+              // add the Y Axis
+               var gY = svg.append("g")
+                  .call(yAxis);
+
+
+/*            var y_axis = d3.axisRight(yScale)
+                .ticks(10)
+                .tickSize(width)
+                .tickPadding(8 - width);*/
+
+
+
+            //.ticks((width + 2) / (height + 2) * 10, ".2f")
+            //.tickSize(width);
+            //.scale(yScale);
+
+            /*            var gY = svg.append("g")
+                            .attr("class", "grid")
+                            .call(y_axis);*/
+
+
+
+
+            var lineX = svg.append('line')
+                .style("stroke", "lightgreen")
+                .style("stroke-width", 2)
+                .attr("x1", 0)
+                .attr("y1", 0);
+
+            var lineY = svg.append('line')
+                .style("stroke", "lightgreen")
+                .style("stroke-width", 2)
+                .attr("x1", 0)
+                .attr("y1", 0);
+
+
+            // Add X axis label:
+            svg.append("text")
+                .attr("text-anchor", "end")
+                .attr("x", width)
+                .attr("y", height + 20)
+                .text("X axis title");
+            
+            
+
+            var point = svg.append("circle")
+                .attr("class", "anchor");
+
+            //_place holder for rings								
+            var speedLineGroup = svg.append("g")
+                .attr("class", "speedlines");
+
+
+
+
+            svg.call(zoom);
+
+            function zoomed() {
+                
+                zoomTrans.x = d3.event.transform.x;
+                zoomTrans.y = d3.event.transform.y;
+                zoomTrans.scale = d3.event.transform.k;
+                
+               /* translateVar[0] = d3.event.translate[0];
+                translateVar[1] = d3.event.translate[1];
+                scaleVar = d3.event.scale;
+                
+                console.log ( (mouseCoords[0] - translateVar[0]) /scaleVar + " " + (mouseCoords[1] - translateVar[1]) /scaleVar );*/
+                
+
+                myimage.attr("transform", d3.event.transform);
+                //view.attr("transform", d3.event.transform);
+                //svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+                gX.call(xAxis.scale(d3.event.transform.rescaleX(xScale)));
+                
+                GgridX.call(gridX.scale(d3.event.transform.rescaleX(xScale)));
+                
+                gY.call(yAxis.scale(d3.event.transform.rescaleY(yScale)));
+                
+                GgridY.call(gridY.scale(d3.event.transform.rescaleY(yScale)));
+                
+                point.attr("transform", d3.event.transform);
+                speedLineGroup.attr("transform", d3.event.transform);
+            }
+
+
+
+            svg.on("mousemove", function() {
+                
+                var coords = d3.mouse(this);
+
+                //let x = (xScale.invert(coords[0])).toFixed(2);
+                //let y = (yScale.invert(coords[1])).toFixed(2);
+                
+                let x = (coords[0] - zoomTrans.x)/zoomTrans.scale;
+                let y = (coords[1] - zoomTrans.y)/zoomTrans.scale;
+                
+                x = (xScale.invert(x)).toFixed(2);
+                y = (yScale.invert(y)).toFixed(2);
+
+                if (x < 0) x = 0;
+                if (y < 0) y = 0;
+
+                console.log(x + " " + y);
+
+
+                let x_mouse = (coords[0]);
+                if (x_mouse < 0) x_mouse = 0;
+
+                let y_mouse = (coords[1]);
+
+                lineX.attr("x1", x_mouse)
+                    .attr("y1", height)
+                    .attr("x2", x_mouse)
+                    .attr("y2", y_mouse);
+
+                lineY.attr("x1", 0)
+                    .attr("y1", y_mouse)
+                    .attr("x2", x_mouse)
+                    .attr("y2", y_mouse);
+
+            })
+            //.on("mousedown", myTransition)
+            .on("click", function(){
+                
+                var coords = d3.mouse(this);
+                
+                let x = (coords[0] - zoomTrans.x)/zoomTrans.scale;
+                let y = (coords[1] - zoomTrans.y)/zoomTrans.scale;
+                //let y = (d3.event.y - zoomTrans.y)/zoomTrans.scale;
+                
+                x = (xScale.invert(x)).toFixed(2);
+                y = (yScale.invert(y)).toFixed(2);
+                
+                console.log("x: " + x + " y: " + y);
+                
+                var coords2 = {x,y};
+                
+                myTransition(coords2);
+                
+            });
+
+
+
+
+            // Create Event Handlers for mouse
+            function handleMouseOver(d, i) { // Add interactivity
+
+
+                // Use D3 to select element, change color and size
+                let aux = d3.select(this).attrs({
+                    fill: "orange",
+                    r: radius * 2,
+                });
+
+                // Specify where to put label of text
+                svg.append("text").attrs({
+                        id: "t" + d.x + "-" + d.y + "-" + i, // Create an id for text so we can select it later for removing on mouseout
+                        x: function() {
+                            return xScale(d.x) - 30;
+                        },
+                        y: function() {
+                            return yScale(d.y) - 15;
+                        }
+                    })
+                    .text(function() {
+                        return [d.x, d.y]; // Value of the text
+                    });
+            }
+
+            function handleMouseOut(d, i) {
+                // Use D3 to select element, change color back to normal
+                d3.select(this).attrs({
+                    fill: "black",
+                    r: radius
+                });
+
+                // Select text by id and then remove
+                d3.select("#t" + d.x + "-" + d.y + "-" + i).remove(); // Remove text location
+
+
+            }
+
+
+            function getDurationPerDot(circleData) {
+                var totalTime = 3000; //3 seconds max
+                var time = totalTime - (circleData.alarmLevel * 10)
+                return time;
+            }
+
+            function getOuterRadiusPerDot(circleData) {
+                var radius = circleData.alarmLevel * .5;
+                return radius;
+            }
+
+
+
+            function myTransition(coords) {
+
+                //var coords = d3.mouse(this);
+
+                // Normally we go from data to pixels, but here we're doing pixels to data
+               /* var newData = {
+                    x: (xScale.invert(coords[0])).toFixed(2), // Takes the pixel number to convert to number
+                    y: (yScale.invert(coords[1])).toFixed(2)
+                };*/
+                
+                var newData = coords;
+
+                newData.alarmLevel = Math.floor(Math.random() * (200 - 0 + 1)) + 0
+
+                point // For new circle, go through the update process
+                    .style("stroke", "gray")
+                    .style("fill", "#f25c19")
+                    .attrs({
+                        'r': '5px',
+                        "cx": xScale(newData.x),
+                        "cy": yScale(newData.y)
+                    });
+
+                point.alarmLevel = newData.alarmLevel;
+                point.xcoord = newData.x;
+                point.ycoord = newData.y;
+
+
+                speedLineGroup.selectAll("circle").remove();
+
+
+                //console.log(point);
+                //var duration = getDurationPerDot(point);
+                var outerRadius = getOuterRadiusPerDot(point);
+                var radius = 1;
+
+                speedLineGroup.append("circle")
+                    .attrs({
+                        "class": "ring",
+                        "fill": "#f25c19",
+                        "stroke": "#f25c19",
+                        "stroke-width": 1.5,
+                        "cx": xScale(point.xcoord),
+                        "cy": yScale(point.ycoord),
+                        "r": radius,
+                        "opacity": 0.35,
+                        "fill-opacity": 0.35
+                    }).node().animate([{
+                        r: 1,
+                        opacity: 1
+                    }, {
+                        r: radius + outerRadius,
+                        opacity: 0
+                    }], {
+                        duration: 4000, //milliseconds
+                        easing: 'ease-in-out', //'linear', a bezier curve, etc.
+                        delay: 0, //milliseconds
+                        iterations: Infinity, //or a number
+                        direction: 'normal', //'normal', 'reverse', etc.
+                        fill: 'forwards' //'backwards', 'both', 'none', 'auto'
+                    });
+
+                speedLineGroup.append("circle")
+                    .attrs({
+                        "class": "ring",
+                        "fill": "#f25c19",
+                        "stroke": "#f25c19",
+                        "stroke-width": 2.5,
+                        "cx": xScale(point.xcoord),
+                        "cy": yScale(point.ycoord),
+                        "r": radius,
+                        "opacity": 0.35,
+                        "fill-opacity": 0.35
+                    }).node().animate([{
+                        r: 1,
+                        opacity: 1
+                    }, {
+                        r: radius + outerRadius,
+                        opacity: 0
+                    }], {
+                        duration: 4000, //milliseconds
+                        easing: 'ease-in-out', //'linear', a bezier curve, etc.
+                        delay: 1000, //milliseconds
+                        iterations: Infinity, //or a number
+                        direction: 'normal', //'normal', 'reverse', etc.
+                        fill: 'forwards' //'backwards', 'both', 'none', 'auto'
+                    });
+
+
+                speedLineGroup.append("circle")
+                    .attrs({
+                        "class": "ring",
+                        "fill": "#f25c19",
+                        "stroke": "#f25c19",
+                        "stroke-width": 2.5,
+                        "cx": xScale(point.xcoord),
+                        "cy": yScale(point.ycoord),
+                        "r": radius,
+                        "opacity": 0.35,
+                        "fill-opacity": 0.35
+                    }).node().animate([{
+                        r: 1,
+                        opacity: 1
+                    }, {
+                        r: radius + outerRadius,
+                        opacity: 0
+                    }], {
+                        duration: 4000, //milliseconds
+                        easing: 'ease-in-out', //'linear', a bezier curve, etc.
+                        delay: 2000, //milliseconds
+                        iterations: Infinity, //or a number
+                        direction: 'normal', //'normal', 'reverse', etc.
+                        fill: 'forwards' //'backwards', 'both', 'none', 'auto'
+                    });
+
+                speedLineGroup.append("circle")
+                    .attrs({
+                        "class": "ring",
+                        "fill": "#f25c19",
+                        "stroke": "#f25c19",
+                        "stroke-width": 2.5,
+                        "cx": xScale(point.xcoord),
+                        "cy": yScale(point.ycoord),
+                        "r": radius,
+                        "opacity": 0.35,
+                        "fill-opacity": 0.35
+                    }).node().animate([{
+                        r: 1,
+                        opacity: 1
+                    }, {
+                        r: radius + outerRadius,
+                        opacity: 0
+                    }], {
+                        duration: 4000, //milliseconds
+                        easing: 'ease-in-out', //'linear', a bezier curve, etc.
+                        delay: 3000, //milliseconds
+                        iterations: Infinity, //or a number
+                        direction: 'normal', //'normal', 'reverse', etc.
+                        fill: 'forwards' //'backwards', 'both', 'none', 'auto'
+                    });
+
+            }
+
+
+
+
+
+
+        }
+
+    </script>
+
+
+    <!-- Begin Javascript -->
+    <script type="text/javascript">
+        function init2(svg, xScale, yScale) {
+
+            //var transition = d3.transition();
+            //var timer = d3.timer(callback);
+
+            /*            var w = window.innerWidth,
+                            h = window.innerHeight,
+                            margin = {
+                                top: 40,
+                                right: 20,
+                                bottom: 20,
+                                left: 40
+                            },
+                            radius = 6;
+
+                        var svg = d3.select("body")
+                            .append("svg")
+                            .attrs({
+                                width: w,
+                                height: h
+                            });
+
+                        var values = [0, 100];*/
+
+            // We're passing in a function in d3.max to tell it what we're maxing (x value)
+            /*            var xScale = d3.scaleLinear()
+                            .domain([0, d3.max(values, function(d) {
+                                return d + 10;
+                            })])
+                            .range([margin.left, w - margin.right]); // Set margins for x specific
+
+                        // We're passing in a function in d3.max to tell it what we're maxing (y value)
+                        var yScale = d3.scaleLinear()
+                            .domain([0, d3.max(values, function(d) {
+                                return d + 10;
+                            })])
+                            .range([margin.top, h - margin.bottom]); // Set margins for y specific*/
+
+            // Add a X and Y Axis (Note: orient means the direction that ticks go, not position)
+
+            /*            var xAxis = d3.axisBottom().scale(xScale);
+                        var yAxis = d3.axisLeft().scale(yScale);*/
+
+            /*            var circleAttrs = {
+                            cx: function(d) {
+                                return xScale(d.x);
+                            },
+                            cy: function(d) {
+                                return yScale(d.y);
+                            },
+                            r: radius
+                        };*/
+
+            /*
+
+                        // Adds X-Axis as a 'g' element
+                        svg.append("g").attrs({
+                            class: "axis", // Give class so we can style it
+                            transform: "translate(" + [0, margin.top] + ")" // Translate just moves it down into position (or will be on top)
+                        }).call(xAxis); // Call the xAxis function on the group
+
+
+
+                        // Adds Y-Axis as a 'g' element
+                        svg.append("g").attrs({
+                            class: "axis",
+                            transform: "translate(" + [margin.left, 0] + ")"
+                        }).call(yAxis); // Call the yAxis function on the group
+
+            */
+
+            /*var pointGroup = svg.append("g")
+                                .attr("class", "circles");*/
+
+            var point = svg.append("circle")
+                .attr("class", "anchor");
+
+            //_place holder for rings								
+            var speedLineGroup = svg.append("g")
+                .attr("class", "speedlines");
+
+
+
+            // On Click, we want to add data to the array and chart
+            svg.on("mousedown", function() {
+
+                var coords = d3.mouse(this);
+
+                // Normally we go from data to pixels, but here we're doing pixels to data
+                var newData = {
+                    x: Math.round(xScale.invert(coords[0])), // Takes the pixel number to convert to number
+                    y: Math.round(yScale.invert(coords[1])),
+                    alarmLevel: Math.floor(Math.random() * (200 - 0 + 1)) + 0
+                };
+
+                point // For new circle, go through the update process
+                    .style("stroke", "gray")
+                    .style("fill", "#f25c19")
+                    .attrs({
+                        'r': '5px',
+                        "cx": xScale(newData.x),
+                        "cy": yScale(newData.y)
+                    });
+
+                point.alarmLevel = newData.alarmLevel;
+                point.xcoord = newData.x;
+                point.ycoord = newData.y;
+
+
+                speedLineGroup.selectAll("circle").remove();
+
+                myTransition();
+
+
+            });
+
+            // Create Event Handlers for mouse
+            function handleMouseOver(d, i) { // Add interactivity
+
+
+                // Use D3 to select element, change color and size
+                let aux = d3.select(this).attrs({
+                    fill: "orange",
+                    r: radius * 2,
+                });
+
+                // Specify where to put label of text
+                svg.append("text").attrs({
+                        id: "t" + d.x + "-" + d.y + "-" + i, // Create an id for text so we can select it later for removing on mouseout
+                        x: function() {
+                            return xScale(d.x) - 30;
+                        },
+                        y: function() {
+                            return yScale(d.y) - 15;
+                        }
+                    })
+                    .text(function() {
+                        return [d.x, d.y]; // Value of the text
+                    });
+            }
+
+            function handleMouseOut(d, i) {
+                // Use D3 to select element, change color back to normal
+                d3.select(this).attrs({
+                    fill: "black",
+                    r: radius
+                });
+
+                // Select text by id and then remove
+                d3.select("#t" + d.x + "-" + d.y + "-" + i).remove(); // Remove text location
+
+
+            }
+
+
+            function getDurationPerDot(circleData) {
+                var totalTime = 3000; //3 seconds max
+                var time = totalTime - (circleData.alarmLevel * 10)
+                return time;
+            }
+
+            function getOuterRadiusPerDot(circleData) {
+                var radius = circleData.alarmLevel * .5;
+                return radius;
+            }
+
+
+
+            function myTransition() {
+                //console.log(point);
+                //var duration = getDurationPerDot(point);
+                var outerRadius = getOuterRadiusPerDot(point);
+                var radius = 1;
+
+                //speedLineGroup.selectAll("circle").remove();
+
+                speedLineGroup.append("circle")
+                    .attrs({
+                        "class": "ring",
+                        "fill": "#f25c19",
+                        "stroke": "#f25c19",
+                        "stroke-width": 1.5,
+                        "cx": xScale(point.xcoord),
+                        "cy": yScale(point.ycoord),
+                        "r": radius,
+                        "opacity": 0.35,
+                        "fill-opacity": 0.35
+                    }).node().animate([{
+                        r: 1,
+                        opacity: 1
+                    }, {
+                        r: radius + outerRadius,
+                        opacity: 0
+                    }], {
+                        duration: 4000, //milliseconds
+                        easing: 'ease-in-out', //'linear', a bezier curve, etc.
+                        delay: 0, //milliseconds
+                        iterations: Infinity, //or a number
+                        direction: 'normal', //'normal', 'reverse', etc.
+                        fill: 'forwards' //'backwards', 'both', 'none', 'auto'
+                    });
+
+                speedLineGroup.append("circle")
+                    .attrs({
+                        "class": "ring",
+                        "fill": "#f25c19",
+                        "stroke": "#f25c19",
+                        "stroke-width": 2.5,
+                        "cx": xScale(point.xcoord),
+                        "cy": yScale(point.ycoord),
+                        "r": radius,
+                        "opacity": 0.35,
+                        "fill-opacity": 0.35
+                    }).node().animate([{
+                        r: 1,
+                        opacity: 1
+                    }, {
+                        r: radius + outerRadius,
+                        opacity: 0
+                    }], {
+                        duration: 4000, //milliseconds
+                        easing: 'ease-in-out', //'linear', a bezier curve, etc.
+                        delay: 1000, //milliseconds
+                        iterations: Infinity, //or a number
+                        direction: 'normal', //'normal', 'reverse', etc.
+                        fill: 'forwards' //'backwards', 'both', 'none', 'auto'
+                    });
+
+
+                speedLineGroup.append("circle")
+                    .attrs({
+                        "class": "ring",
+                        "fill": "#f25c19",
+                        "stroke": "#f25c19",
+                        "stroke-width": 2.5,
+                        "cx": xScale(point.xcoord),
+                        "cy": yScale(point.ycoord),
+                        "r": radius,
+                        "opacity": 0.35,
+                        "fill-opacity": 0.35
+                    }).node().animate([{
+                        r: 1,
+                        opacity: 1
+                    }, {
+                        r: radius + outerRadius,
+                        opacity: 0
+                    }], {
+                        duration: 4000, //milliseconds
+                        easing: 'ease-in-out', //'linear', a bezier curve, etc.
+                        delay: 2000, //milliseconds
+                        iterations: Infinity, //or a number
+                        direction: 'normal', //'normal', 'reverse', etc.
+                        fill: 'forwards' //'backwards', 'both', 'none', 'auto'
+                    });
+
+                speedLineGroup.append("circle")
+                    .attrs({
+                        "class": "ring",
+                        "fill": "#f25c19",
+                        "stroke": "#f25c19",
+                        "stroke-width": 2.5,
+                        "cx": xScale(point.xcoord),
+                        "cy": yScale(point.ycoord),
+                        "r": radius,
+                        "opacity": 0.35,
+                        "fill-opacity": 0.35
+                    }).node().animate([{
+                        r: 1,
+                        opacity: 1
+                    }, {
+                        r: radius + outerRadius,
+                        opacity: 0
+                    }], {
+                        duration: 4000, //milliseconds
+                        easing: 'ease-in-out', //'linear', a bezier curve, etc.
+                        delay: 3000, //milliseconds
+                        iterations: Infinity, //or a number
+                        direction: 'normal', //'normal', 'reverse', etc.
+                        fill: 'forwards' //'backwards', 'both', 'none', 'auto'
+                    });
+
+            }
+        }
+
+    </script>
+</body>
+
+</html>

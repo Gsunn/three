@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>d3.js v5 Realtime Line chart</title>
+    <style>
+    
+        body{
+           background-color: rgba(28, 129, 193, 0.21); 
+        }
+        
+              text {
+          font-family: "Verdana", sans-serif;
+        }
+        
+        #d3_chart{
+            background-color: black;
+            border: 4px solid #3e4142;
+            border-radius: 10px;
+        }
+        
+        
+        .axis {
+          stroke: lightgrey;
+          stroke-opacity: 0.7;
+          shape-rendering: crispEdges;
+            
+            color: white;
+        }
+
+        .axis path {
+          stroke-width: 1;
+        }
+        
+          .tick {
+            stroke: lightgrey;
+            stroke-opacity: 0.1;
+            shape-rendering: crispEdges
+          }
+        
+        #d3_chart .lines{
+            outline: dotted;
+        }
+        
+        
+        #gauges{
+            display: inline-flex;
+        }
+        
+/*
+         #chart {
+              max-width: 500px;
+            }
+*/
+        
+    </style>
+    <script
+  src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+  integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8="
+  crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.15.0/d3.min.js"></script>
+
+    <!-- <link rel="stylesheet" href="style.css" > -->
+</head>
+<body>
+
+<div id="d3_chart"></div>
+<div id="gauges">
+    <div>
+        <div id="chart"></div>
+    </div>
+        <div>
+        <div id="chartHum"></div>
+    </div>
+</div>
+
+
+
+<script src="app.js"></script>
+<script src="gauge.js"></script>
+
+<script type="text/javascript">
+    function autorun()
+    {
+        D3_CHART.init();
+    }
+    if (document.addEventListener) document.addEventListener("DOMContentLoaded", autorun, false);
+    else if (document.attachEvent) document.attachEvent("onreadystatechange", autorun);
+    else window.onload = autorun;
+</script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        .container {
+            position: fixed;
+            left: 0px;
+            right: 0px;
+            top: 50px;
+            bottom: 0px;
+        }
+        /* svg {
+          background: url('almacen.jpg') no-repeat;
+        }*/
+        #image-view{
+            /*transform: translate(50px, 10px);*/
+        }
+        #ruler{
+           /* transform: translate(-50px, -10px);*/
+        }
+        #image-view, #ruler{
+            position: absolute;
+            width: 100%;
+            padding: 0px;
+        }
+        
+        svg {
+            overflow: visible;
+        }
+        
+        
+        
+        
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <image id="image-view" src="almacen.jpg" ></image>
+        <div id="ruler"></div>
+    </div>
+    
+    
+    <script>
+        
+        window.onload = function(){
+            init();
+        }
+    function init(){    
+        var exampleDiv = document.getElementById("image-view");
+
+        var width = exampleDiv.clientWidth;
+        var height = parseFloat(exampleDiv.clientHeight);
+
+        var data = [10, 15, 20, 25, 30];
+        var svg = d3.select("#ruler")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("preserveAspectRatio", "xMinYMin meet");
+
+        var xscale = d3.scaleLinear()
+            .domain([0, d3.max(data)])
+            .range([0, width]);
+
+        var yscale = d3.scaleLinear()
+            .domain([0, d3.max(data)])
+            .range([height, 0]);
+
+        var x_axis = d3.axisBottom()
+            .scale(xscale);
+
+        var y_axis = d3.axisLeft()
+            .scale(yscale);
+
+        svg.append("g")
+            /*.attr("transform", "translate(50, 10)")*/
+            .call(y_axis);
+        
+
+        var xAxisTranslate = height;
+
+        svg.append("g")
+            .attr("transform", "translate(0, " + xAxisTranslate + ")")
+            .call(x_axis);
+
+
+        var lineX = svg.append('line')
+                        .style("stroke", "lightgreen")
+                        .style("stroke-width", 2)
+                        .attr("x1", 0)
+                        .attr("y1", 0);
+        
+        var lineY = svg.append('line')
+                        .style("stroke", "lightgreen")
+                        .style("stroke-width", 2)
+                        .attr("x1", 0)
+                        .attr("y1", 0);
+        
+  svg.append('rect')
+  .attr('x', 0)
+  .attr('y', 0)
+  .attr('width', width)
+  .attr('height', height)
+  .attr('stroke', 'black')
+  .attr('fill', 'transparent');
+   
+        
+        svg.on("mousemove", function() {
+            
+            mousex = d3.mouse(this);
+            mousex = mousex[0] + 5;
+            svg.style("left", mousex + "px" );
+            
+            //console.log("x - using invert", xscale.invert(d3.mouse(this)[0]));
+            //console.log("y- using invert", yscale.invert(d3.mouse(this)[1]));
+            let x = (xscale.invert(d3.mouse(this)[0])).toFixed(2);
+            let y = (yscale.invert(d3.mouse(this)[1])).toFixed(2);
+            
+            if(x < 0) x = 0;
+            if(y < 0) y = 0;
+            
+            console.log( x  + " " + y );
+            
+            /*        svg.append('line')
+                        .style("stroke", "lightgreen")
+                        .style("stroke-width", 2)
+                        .attr("x1", 0)
+                        .attr("y1", 0)
+                        .attr("x2", (d3.mouse(this)[0]))
+                        .attr("y2", (d3.mouse(this)[1]));*/
+            
+            let x_mouse = (d3.mouse(this)[0]);
+            if(x_mouse < 0) x_mouse = 0;
+            
+            let y_mouse = (d3.mouse(this)[1]);
+            
+            lineX.attr("x1", x_mouse )
+                .attr("y1", height)
+                .attr("x2", x_mouse )
+                .attr("y2", y_mouse );
+            
+            lineY.attr("x1", 0) 
+                .attr("y1", y_mouse )
+                .attr("x2", x_mouse )
+                .attr("y2", y_mouse );
+
+        });
+        
+
+        
+    
+    }
+    </script>
+</body>
+
+</html>

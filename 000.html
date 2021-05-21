@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <!-- Load D3 from site -->
+    <script src="http://d3js.org/d3.v5.min.js" charset="utf-8"></script>
+    <script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
+    <script src="https://d3js.org/d3-transition.v1.min.js"></script>
+    <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+    <script src="https://d3js.org/d3-ease.v1.min.js"></script>
+    <script src="https://d3js.org/d3-zoom.v1.min.js"></script>
+    
+</head>
+<body>
+   <div class="container">
+     <!--    <image id="image-view" src="almacen.jpg" class="_mw-100"></image>-->
+        <div id="d3Container"></div>
+    </div>
+    
+    <!-- Begin Javascript -->
+    <script type="text/javascript">
+        
+        var img = new Image();
+        img.src = "almacen.jpg";
+        
+        img.onload = function() {
+            console.log("Image 1 ready to append");
+            //document.body.append(this);
+           init(this.naturalWidth, this.naturalHeight);
+        };
+    
+    function init(width, height){
+        
+     /* var width = $("#d3Container").innerWidth(),
+          height = $("#d3Container").innerHeight(),*/
+    var margin = { top: 40, right: 40, bottom: 40, left: 40 };
+
+      var svg = d3.select("#d3Container")
+                        .append("svg")
+                        .attrs({
+                            width: width,
+                            height: height
+                        });
+
+
+      // We're passing in a function in d3.max to tell it what we're maxing (x value)
+      var xScale = d3.scaleLinear()
+          .domain([0, 150])
+          .range([margin.left, width - margin.right]);  // Set margins for x specific
+
+      // We're passing in a function in d3.max to tell it what we're maxing (y value)
+      var yScale = d3.scaleLinear()
+          .domain([100, 0])
+          .range([margin.top, height - margin.bottom]);  // Set margins for y specific
+
+      // Add a X and Y Axis (Note: orient means the direction that ticks go, not position)
+      var xAxis = d3.axisBottom().scale(xScale);
+      var yAxis = d3.axisLeft().scale(yScale);
+
+        var ruler = svg.append("g").attr("id", "axis");
+       
+      // Adds X-Axis as a 'g' element
+      ruler.append("g").attrs({
+        "class": "axis",  // Give class so we can style it
+        "transform": "translate(" + [0, height - margin.top] + ")"  // Translate just moves it down into position (or will be on top)
+      }).call(xAxis);  // Call the xAxis function on the group*/
+        
+
+      // Adds Y-Axis as a 'g' element
+      ruler.append("g").attrs({
+        "class": "axis",
+        "transform": "translate(" + [margin.left, 0] + ")"
+      }).call(yAxis);  // Call the yAxis function on the group
+
+    
+        var content = svg.append("g");
+        
+           var myimage = content.append('image')
+                    .attr("class", "myimage")
+                    .attr('xlink:href', 'almacen.jpg')
+           //.attr('x', 0)
+           //.attr('y', 0)
+                    .attrs({
+                        'width': width - margin.right - margin.left,
+                        'height': height - margin.top - margin.bottom,
+                        /*"transform": "translate(" + [margin.left, 0] + ")",*/
+                    });
+                
+
+    }
+
+    </script>
+    
+</body>
+</html>

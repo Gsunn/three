@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Simple Template</title>
+    <style>
+
+        body {
+            font: 10px sans-serif;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: grey;
+        }
+
+        svg {
+            background-color: steelblue;
+        }
+
+        .content {
+            fill: lightsteelblue;
+        }
+
+        .label {
+            fill: white;
+            font-size: x-large;
+            font-weight: bolder;
+        }
+
+    </style>
+    
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <!-- Load D3 from site -->
+    <script src="http://d3js.org/d3.v5.min.js" charset="utf-8"></script>
+    <script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
+    <script src="https://d3js.org/d3-transition.v1.min.js"></script>
+    <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+    <script src="https://d3js.org/d3-ease.v1.min.js"></script>
+    <script src="https://d3js.org/d3-zoom.v1.min.js"></script>
+</head>
+<body>
+
+<svg width="800" height="500"></svg>
+
+<script>
+
+  const margin = {top: 50, right: 50, bottom: 50, left: 50};
+
+  const svg = d3.select("svg");
+  const width = svg.attr("width") - margin.left - margin.right;
+  const height = svg.attr("height") - margin.top - margin.bottom;
+
+  // content area of your visualization (note: g elements do NOT have dimensions)
+  const vis = svg.append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // Everything below is for illustration purposes
+  // delete it and replace it with your own visualization (by appending to `vis`)
+
+  // -- ▼ DELETE FROM HERE ▼ --
+
+  // illustrate content area dimensions (makes container g element grow accordingly)
+  const rect = vis.append("rect")
+    .attr("class", "content")
+    .attr("width", width)
+    .attr("height", height);
+    
+                var myimage = svg.append('image')
+                    .enter()
+                    .attr("class", "content")
+                    .attr('xlink:href', 'almacen.jpg')
+                    .attr("width", width).attr("height", height)
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // illustrate left/right margins
+  const xScale = d3.scaleLinear()
+    .domain([0, margin.left + width])
+    .range([0, width]);
+    
+  vis.append("g")
+     .attr("transform", "translate(0, " + height + ")") //abajo el eje X
+    .call(d3.axisBottom(xScale));
+
+  // illustrate top/bottom margins
+  const yScale = d3.scaleLinear()
+    .domain([0, margin.top + height])
+    .range([0, height]);
+    
+  vis.append("g").call(d3.axisLeft(yScale));
+
+  // Tip: name your selections and work with CSS classes
+  const label = vis.append("g")
+    .attr("class", "label");
+
+  const data = ["Content", "Area"];
+
+  label.selectAll("text")
+    .data(data)
+    .enter()
+    .append("text")
+    .text(d => d)
+    .attr("x", width / 2)
+    .attr("y", (d, i) => height / 2 + (i * 20))
+    .attr("text-anchor", "middle");
+
+  // -- ▲ DELETE UNTIL HERE ▲ --
+
+</script>
+
+</body>
+</html>
